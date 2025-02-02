@@ -26,11 +26,30 @@ public class OllamaDemoApplication {
 	}
 
 	@GetMapping
-	public String chatbot(@RequestParam("message") String message) {
-		var userMessage = new UserMessage(message);
-		var prompt = new Prompt(userMessage);
-		var response = chatModel.call(prompt);
-		return response.getResult().getOutput().getText();
+	public RespostaChat chatbot(@RequestParam("message") String message) {
+		long inicio = System.currentTimeMillis();
+
+		var mensagemDoUsuario = new UserMessage(message);
+		var prompt = new Prompt(mensagemDoUsuario);
+		var respostaDoChat = chatModel.call(prompt);
+		var saida = respostaDoChat.getResult().getOutput().getText();
+
+		long fim = System.currentTimeMillis();
+		long tempoGastoMs = fim - inicio;
+
+		long minutos = tempoGastoMs / 60000;
+		long resto   = tempoGastoMs % 60000;
+		long segundos = resto / 1000;
+		long milissegundos = resto % 1000;
+
+		String tempoGastoFormatado = String.format(
+				"%d minuto(s), %d segundo(s) e %d milissegundo(s)",
+				minutos, segundos, milissegundos
+		);
+
+		return new RespostaChat(saida, tempoGastoFormatado);
 	}
+
+	public record RespostaChat(String texto, String tempoGasto) {}
 
 }
